@@ -58,6 +58,8 @@ func main() {
 		panic(err)
 	}
 
+	os.Remove("/var/tmp/burrow/burrow.pid")
+
 	f, err := os.Create("burrow-config.ini")
 	if err != nil {
 		panic(err)
