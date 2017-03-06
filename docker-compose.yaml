@@ -1,0 +1,32 @@
+version: '2'
+services:
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+      - 2181
+    labels:
+      avanti.service.count: "1"
+  kafka:
+    image: wurstmeister/kafka
+    ports:
+      - 9092
+      - 8083
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ADVERTISED_PORT: 9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    depends_on:
+      - zookeeper
+    labels:
+      avanti.service.count: "1"
+  manage:
+    build: .
+    ports:
+      - 8080
+    environment:
+      KAFKA_NAME: kafka
+      ZOOKEEPER_NAME: zookeeper
+    depends_on:
+      - kafka
+    labels:
+      avanti.service.count: "1"
