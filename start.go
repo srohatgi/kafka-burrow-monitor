@@ -6,6 +6,7 @@ import (
 	"text/template"
 	"os/exec"
 	"syscall"
+	"strings"
 )
 
 var burrowConfig = `
@@ -13,17 +14,17 @@ var burrowConfig = `
 group-blacklist=^(console-consumer-|python-kafka-consumer-).*$
 
 [zookeeper]
-hostname={{.ZOOKEEPER_NAME}}
-port=2181
+{{range .ZOOKEEPER}}hostname={{.}}
+{{end}}port=2181
 timeout=6
 lock-path=/burrow/notifier
 
 [kafka "local"]
-broker={{.KAFKA_NAME}}
-broker-port=9092
+{{range .KAFKA}}broker={{.}}
+{{end}}broker-port=9092
 offsets-topic=__consumer_offsets
-zookeeper=zookeeper
-zookeeper-path=/local
+{{range .ZOOKEEPER}}zookeeper={{.}}
+{{end}}zookeeper-path=/local
 zookeeper-offsets=true
 offsets-topic=__consumer_offsets
 
@@ -39,17 +40,17 @@ server=on
 port=8000
 `
 
-var env = []string{"KAFKA_NAME", "ZOOKEEPER_NAME"}
-
+type servers struct {
+	ZOOKEEPER []string
+	KAFKA []string
+}
 
 func main() {
 
-	vars := map[string]string{}
+	vars := servers{}
 
-	for _, v := range env {
-		vars[v] = os.Getenv(v)
-		fmt.Printf("%s=%s\n", v, os.Getenv(v))
-	}
+	vars.KAFKA = strings.Split(os.Getenv("KAFKA_NAME"), ",")
+	vars.ZOOKEEPER = strings.Split(os.Getenv("ZOOKEEPER_NAME"), ",")
 
 	tmpl, err := template.New("burrowConfig").Parse(burrowConfig)
 	if err != nil {
