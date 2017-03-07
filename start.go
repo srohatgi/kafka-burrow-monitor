@@ -76,7 +76,7 @@ func main() {
 		panic(lookErr)
 	}
 
-	args := []string{"/go/bin/burrow", "--config", "burrow-config.ini"}
+	args := []string{"/go/bin/burrow", "--config", "/var/tmp/burrow/burrow-config.ini"}
 
 	execErr := syscall.Exec(binary, args, os.Environ())
 	if execErr != nil {
