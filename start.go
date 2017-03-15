@@ -49,8 +49,8 @@ func main() {
 
 	vars := servers{}
 
-	vars.KAFKA = strings.Split(strings.Replace(os.Getenv("MQ_URL"), ":9092", "", -1), ",")
-	vars.ZOOKEEPER = strings.Split(strings.Replace(os.Getenv("MQ_ZK_URL"), ":2181", "", -1), ",")
+	vars.KAFKA = strings.Split(strings.Replace(os.Getenv("MQ_URL"), ":"+os.Getenv("KAFKA_PORT"), "", -1), ",")
+	vars.ZOOKEEPER = strings.Split(strings.Replace(os.Getenv("MQ_ZK_URL"), ":"+os.Getenv("ZOOKEEPER_PORT"), "", -1), ",")
 
 	tmpl, err := template.New("burrowConfig").Parse(burrowConfig)
 	if err != nil {
