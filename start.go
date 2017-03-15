@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 	"os"
-	"text/template"
 	"os/exec"
-	"syscall"
 	"strings"
+	"syscall"
+	"text/template"
 )
 
 var burrowConfig = `
@@ -42,19 +42,19 @@ port=8000
 
 type servers struct {
 	ZOOKEEPER []string
-	KAFKA []string
+	KAFKA     []string
 }
 
 func main() {
 
 	vars := servers{}
 
-	vars.KAFKA = strings.Split(os.Getenv("KAFKA_NAME"), ",")
-	vars.ZOOKEEPER = strings.Split(os.Getenv("ZOOKEEPER_NAME"), ",")
+	vars.KAFKA = strings.Split(strings.Replace(os.Getenv("MQ_URL"), ":"+os.Getenv("KAFKA_PORT"), "", -1), ",")
+	vars.ZOOKEEPER = strings.Split(strings.Replace(os.Getenv("MQ_ZK_URL"), ":"+os.Getenv("ZOOKEEPER_PORT"), "", -1), ",")
 
 	tmpl, err := template.New("burrowConfig").Parse(burrowConfig)
 	if err != nil {
-		fmt.Errorf("unable to parse template: %s\n", burrowConfig)
+		fmt.Errorf("unable to parse template: %s", burrowConfig)
 		panic(err)
 	}
 
@@ -67,7 +67,7 @@ func main() {
 
 	err = tmpl.Execute(f, vars)
 	if err != nil {
-		fmt.Errorf("unable to execute template: %s\n", burrowConfig)
+		fmt.Errorf("unable to execute template: %s", burrowConfig)
 		panic(err)
 	}
 
