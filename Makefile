@@ -1,2 +1,2 @@
 all:
-	docker build -t srohatgi/kafka-monitor-docker .
+	docker build -t srohatgi/kafka-burrow-monitor .
