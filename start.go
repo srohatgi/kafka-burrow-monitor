@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -49,6 +51,11 @@ func main() {
 
 	vars := servers{}
 
+	fmt.Println("MQ_URL:", os.Getenv("MQ_URL"))
+	fmt.Println("MQ_ZK_URL:", os.Getenv("MQ_ZK_URL"))
+	fmt.Println("KAFKA_PORT:", os.Getenv("KAFKA_PORT"))
+	fmt.Println("ZOOKEEPER_PORT:", os.Getenv("ZOOKEEPER_PORT"))
+
 	vars.KAFKA = strings.Split(strings.Replace(os.Getenv("MQ_URL"), ":"+os.Getenv("KAFKA_PORT"), "", -1), ",")
 	vars.ZOOKEEPER = strings.Split(strings.Replace(os.Getenv("MQ_ZK_URL"), ":"+os.Getenv("ZOOKEEPER_PORT"), "", -1), ",")
 
@@ -76,10 +83,31 @@ func main() {
 		panic(lookErr)
 	}
 
+	file, err := os.Open("/var/tmp/burrow/burrow-config.ini")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	fmt.Println("_____Start file_____")
+	fmt.Println("")
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		fmt.Println(scanner.Text())
+	}
+	fmt.Println("")
+	fmt.Println("_____End File_____")
+	if err := scanner.Err(); err != nil {
+		panic(err)
+	}
+
 	args := []string{"/go/bin/burrow", "--config", "/var/tmp/burrow/burrow-config.ini"}
 
 	execErr := syscall.Exec(binary, args, os.Environ())
 	if execErr != nil {
 		panic(execErr)
 	}
+
+	fmt.Println("_____Started successfully_____")
 }
