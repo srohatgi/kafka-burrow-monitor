@@ -3,8 +3,10 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"syscall"
 	"text/template"
@@ -16,13 +18,13 @@ group-blacklist=^(console-consumer-|python-kafka-consumer-).*$
 
 [zookeeper]
 {{range .ZOOKEEPER}}hostname={{.}}
-{{end}}port=2181
+{{end}}port={{.ZOOKEEPER_PORT}}
 timeout=6
 lock-path=/burrow/notifier
 
 [kafka "local"]
 {{range .KAFKA}}broker={{.}}
-{{end}}broker-port=9092
+{{end}}broker-port={{.KAFKA_PORT}}
 offsets-topic=__consumer_offsets
 {{range .ZOOKEEPER}}zookeeper={{.}}
 {{end}}zookeeper-path=/local
@@ -42,21 +44,33 @@ port=8000
 `
 
 type servers struct {
-	ZOOKEEPER []string
-	KAFKA     []string
+	ZOOKEEPER      []string
+	KAFKA          []string
+	KAFKA_PORT     int
+	ZOOKEEPER_PORT int
+}
+
+func convertToInt(port string) int {
+	i, err := strconv.Atoi(port)
+	if err != nil {
+		panic(err)
+	}
+	return i
 }
 
 func main() {
 
 	vars := servers{}
 
-	fmt.Println("MQ_URL:", os.Getenv("MQ_URL"))
-	fmt.Println("MQ_ZK_URL:", os.Getenv("MQ_ZK_URL"))
+	fmt.Println("ZOOKEEPER:", os.Getenv("ZOOKEEPER"))
+	fmt.Println("KAFKA:", os.Getenv("KAFKA"))
 	fmt.Println("KAFKA_PORT:", os.Getenv("KAFKA_PORT"))
 	fmt.Println("ZOOKEEPER_PORT:", os.Getenv("ZOOKEEPER_PORT"))
 
-	vars.KAFKA = strings.Split(strings.Replace(os.Getenv("MQ_URL"), ":"+os.Getenv("KAFKA_PORT"), "", -1), ",")
-	vars.ZOOKEEPER = strings.Split(strings.Replace(os.Getenv("MQ_ZK_URL"), ":"+os.Getenv("ZOOKEEPER_PORT"), "", -1), ",")
+	vars.KAFKA = strings.Split(os.Getenv("KAFKA"), ",")
+	vars.ZOOKEEPER = strings.Split(os.Getenv("ZOOKEEPER"), ",")
+	vars.KAFKA_PORT = convertToInt(os.Getenv("KAFKA_PORT"))
+	vars.ZOOKEEPER_PORT = convertToInt(os.Getenv("ZOOKEEPER_PORT"))
 
 	tmpl, err := template.New("burrowConfig").Parse(burrowConfig)
 	if err != nil {
@@ -84,19 +98,16 @@ func main() {
 
 	file, err := os.Open("/var/tmp/burrow/burrow-config.ini")
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	defer file.Close()
 
-	fmt.Println("_____Start file_____")
-	fmt.Println("")
-
+	fmt.Println("_____Reading parsed file_____")
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		fmt.Println(scanner.Text())
 	}
-	fmt.Println("")
-	fmt.Println("_____End File_____")
+	fmt.Println("_____Reading file done_____")
 	if err := scanner.Err(); err != nil {
 		panic(err)
 	}
@@ -107,6 +118,4 @@ func main() {
 	if execErr != nil {
 		panic(execErr)
 	}
-
-	fmt.Println("_____Started successfully_____")
 }
