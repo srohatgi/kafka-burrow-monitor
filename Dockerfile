@@ -13,4 +13,7 @@ ENV PATH=$PATH:$GOPATH/bin
 
 ENV PROGRAM_NAME=/go/bin/kafka-burrow-monitor
 
+WORKDIR /var/tmp/burrow
+
 CMD ["mq-bootstrap"]
+# CMD /bin/bash -c 'while : ; do sleep 1; done'
