@@ -19,7 +19,7 @@ group-blacklist=^(console-consumer-|python-kafka-consumer-).*$
 [zookeeper]
 {{range .ZOOKEEPER}}hostname={{.}}
 {{end}}port={{.ZOOKEEPER_PORT}}
-timeout=6
+timeout=120
 lock-path=/burrow/notifier
 
 [kafka "local"]
