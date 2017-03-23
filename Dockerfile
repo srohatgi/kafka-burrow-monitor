@@ -11,4 +11,4 @@ ENV PATH=$PATH:$GOPATH/bin
 
 WORKDIR /var/tmp/burrow
 
-CMD sleep 150 && /go/bin/kafka-burrow-monitor
+CMD /go/bin/kafka-burrow-monitor
